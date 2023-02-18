@@ -1,9 +1,11 @@
+import csv
 import logging
+from pathlib import Path
 
 import pandas as pd
 from fuzzywuzzy import fuzz
 
-from fuzzy_pharma.definitions import NOMENCLATURE, CLIENTS
+from fuzzy_pharma.definitions import NOMENCLATURE, CLIENTS, DATA_OUT
 
 
 def get_data_frames(nomenclature_dir, header=None):
@@ -50,6 +52,14 @@ def get_nomenclature_name(client_name, nomenclature_names):
         return None, None, None, 0
 
 
+def save_lists_to_csv(in_list, f_name, encoding='utf-8',
+                      newline='', delimiter=','):
+    Path(f_name).parent.mkdir(parents=True, exist_ok=True)
+    with open(Path(f_name), 'w', encoding=encoding, newline=newline) as f:
+        csv_writer = csv.writer(f, delimiter=delimiter)
+        csv_writer.writerows(in_list)
+
+
 def main():
     nomenclature_df = get_data_frames(NOMENCLATURE)
     clients_df = get_client_data_frames(CLIENTS, ['наименование'])
@@ -67,6 +77,9 @@ def main():
     for row in clients_df.itertuples():
         out_tuple = get_nomenclature_name(row[1], nomenclature_names)
         out_tuples.append(out_tuple)
+
+    out_f_name = DATA_OUT / 'out_data.csv'
+    save_lists_to_csv(out_tuples, out_f_name)
 
 
 if __name__ == '__main__':
